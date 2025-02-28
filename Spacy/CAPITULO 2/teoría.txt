@@ -1,0 +1,68 @@
+Para usar menos memoria, Spacy codifica todos los strings a valores hash.
+Los string solo son guardados una vez en el StringStore via nlp.vocab.strings (StringStore = un lookup table en ambas direcciones = nlp.vocab.strings).
+
+nlp.vocab.strings.add("café")
+cafe_hash = nlp.vocab.strings["café"]
+cafe_string = nlp.vocab.strings[cafe_hash]
+
+Los hashes no pueden ser revertidos
+
+
+Busca el string y el hash en el vocab:
+
+doc = nlp("Ines toma café")
+print("hash value:", nlp.vocab.strings["café"])
+print("string value:", nlp.vocab.strings[32833993555699147])
+
+*Respuesta: 
+hash value = 32833993555699147
+string value = café
+*
+
+El doc tambien expone su vocabulario y sus strings:
+
+doc = nlp("Ines toma café")
+print("hash value:", doc.vocab.strings["café"])
+
+*Respuesta:
+hash value: 32833993555699147
+*
+
+Un objeto lexeme es una entrada en el vocabulario:
+
+doc = nlp("Ines toma café")
+lexeme = nlp.vocab["café"]
+
+# Imprime en pantalla los atributos léxicos
+print(lexeme.text, lexeme.orth, lexeme.is_alpha)
+
+*Respuesta: 
+café 32833993555699147 True
+*
+
+
+
+El Doc es un tipo de datos creado automaticamente pero tambien se puede crear un instance manualmente importandola desde spacy.tokens
+
+
+El span es un slice de un doc. Recibe al menos tres parametros: el doc al que se refiere, el index de inicio y el index final del span
+
+
+Existe un metodo en spacy que predice similitudes entre objetos. El metodo es .similarity, que recibe otro objeto y devuelve un numero flotante
+entre 0 y 1 describiendo el grado de similitud entre ellos
+IMPORTANTE: Es necesario que el modelo sea mediano o grande (terminacion md o lg) ya que estos tienen los word vectors incluidos
+
+La similitud se determina usando word vectors, es decir, representaciones multidimensionales de los significados de las palabras. La similitud
+que devuelve es una similitud coseno entre dos vectores pero esto es modificable.
+
+La similitud depende del contexto y debe tomarse con pinzas el resultado flotante que nos da.
+"Me encantan los gatos" y "Me desagradan los gatos" tiene una similitud de 97% por el hecho de expresar sentimientos sobre los gatos, pero al
+interpretar estos dos textos, vemos que contextualmente son opiniones muy contrarias.
+
+Phrase matcher es una herramienta util para encontrar secuencias de palabras en los datos. Toma los objetos Doc como patrones.
+Es la mejor opción para encontrar diccionarios grandes y listas de palabras en grandes volumenes de texto
+
+Al phraseMatcher, en vez de pasarle una lista de diccionarios, le pasamos un objeto Doc como el patron que debe encontrar
+Entonces podemos iterar sobre los resultados en el texto, lo que nos da un match ID y el inicio y final del resultado. 
+Esto nos permite crear un objeto Span para los tokens resultantes "labrador dorado" y poder analizarlos en su contexto
+

@@ -1,0 +1,85 @@
+¿Qué hace realmente el objeto nlp?
+Primero se aplica el tokenizer para convertir el string de texto a un Doc. Luego, una serie de componentes del pipeline se aplican al doc en
+orden: el tagger, luego el parser y luego el entity recognizer. Finalmente el Doc procesado es devuelto.
+
+Componentes incluidos en el pipeline:
+    - tagger --> añade los atributos token.tag y token.procesado
+    - parser (dependency parser) --> añade los atributos token.dep, token.head, doc.sents, doc.noun_chunks  [Detecta las frases y los base nouns phrases]
+    - ner (named entity recognizer) --> doc.ents, token.ent_iob, token.ent_type [Escribe los atributos del tipo entidad en los tokens]
+    - textcat (text classifier) --> doc.cats [escribe las labels de categorías para todo el texto]
+
+Atributos del pipeline:
+    - nlp.pipe_names --> una lista de nombres de componentes del pipeline
+    - nlp.pipeline --> una lista de tuplas (name, component)
+
+Componentes personalizados del pipeline: Se ejecutan automaticamente cuando llamas al objeto nlp sobre un texto. Son especialmente utiles
+para añadir tus propios metadatos a los documentos y a los tokens. Tambien son utilizados para actualizar los atributos incluidos
+
+Un componente del pipeline es una funcion o un callable que toma a un doc, lo modifica y lo devuelve para que pueda ser procesado por el proximo
+componente en el pipeline
+
+*Forma de crear un componente personalizado: 
+
+from spacy.language import Language
+
+@Language.component("custom_component")       #Esta linea debe ser escrita en la linea inmediatamente anterior a la creacion de la función
+def custom_component_function(doc):
+    # Haz algo con el doc aquí
+    return doc
+
+nlp.add_pipe(custom_component)       #Esta linea añadirá el componente a la lista de componentes del pipeline
+
+*
+
+Podemos decidir donde añadir este componente de la siguiente forma:
+
+    - last [nlp.add_pipe(component, last = True)] --> Al poner last=True, el comp será añadido en el ultimo lugar del pipeline
+    - first [nlp.add_pipe(component, first = True)] --> Al poner first=True, el comp será añadido en el primer lugar del pipeline
+    - before [nlp.add_pipe(component, before = "ner")] --> Lo añade antes del componente ner
+    - after [nlp.add_pipe(component, after = "ner")] --> Lo añade después del componente ner
+
+Los atributos personalizados permiten añadir metadatos a los docs, tokens y spans. Están disponibles a través de la propiedad ._
+Deben ser registrados en las clases Doc, Token y Span globales y para ello se usa el metodo set_extension(nombre_del_atributo, calculo_valor)
+
+*
+doc._.title = "Mi documento"
+token._.is_color = True
+span._.has_color = False
+
+# Importa las clases globales
+from spacy.tokens import Doc, Token, Span
+
+# Añade extensiones para el Doc, Token y Span
+Doc.set_extension("title", default=None)
+Token.set_extension("is_color", default=False)
+Span.set_extension("has_color", default=False)
+*
+
+Tres tipos de extensiones:
+    - Extension de atributos --> Añaden un valor por defecto que puede ser sobreescrito
+    - Extension de propiedades --> Pueden definir una función getter y una setter opcional
+    - Extension de metodos
+
+Si es necesario procesar una gran cantidad de textos y crear muchos objetos Doc seguidos, el metodo nlp.pipe puede acelerar el proceso ya
+que procesa los textos como un stream y usa yield para devolver objetos Doc
+
+La forma correcta de usarlo es-->  docs = list(nlp.pipe(MUCHOS_TEXTOS))
+
+nlp.pipe tambien provee soporte para pasar tuplas (text, context) si se define as_tuples = True
+
+Se puede convertir un texto en un Doc utilizando --> doc = nlp.make_doc("¡Hola Mundo!")
+
+Para deshabilitar temporalmente uno o más componentes del pipeline se utiliza --> nlp.disable_pipes
+
+Después del bloque with, los componentes del pipeline deshabilitados se restauran automáticamente.
+
+Dentro del bloque with, spaCy solo correrá los componentes restantes
+
+*
+# Desactiva el tagger y el parser
+with nlp.select_pipes(disable=["tagger", "parser"])
+    # Procesa el texto e imprime las entidades en pantalla
+    doc = nlp(text)
+    print(doc.ents)
+*
+

@@ -1,0 +1,121 @@
+Como funciona el entrenamiento de modelos:
+    - Inicializa los parametros del modelo de manera aleatorias
+    - Predice unos cuantos ejemplos con los parametros actuales
+    - Compara la prediccion con las etiquetas correctas -->nlp.update
+    - Calcula como cambiar los parámetros para mejorar las predicciones
+    - Actualiza ligeramente los parámetros --> nlp.update
+    - Vuelve al paso 2
+
+Los datos de entrenamiento son los ejemplos con los que queremos actualizar el modelo.
+El texto debe ser una oración, un párrafo o un documento más largo. Para mejores resultados, debería ser similar a lo que el modelo verá 
+cuando se esté ejecutando.
+La etiqueta (label) es lo que queremos que el modelo prediga. Esto puede ser una categoría de texto, o un span de entidad y su tipo.
+El gradiente es cómo deberíamos cambiar el modelo para reducir el error actual. Es calculado cuando comparamos la etiqueta predicha con la 
+etiqueta verdadera.
+Después de entrenar podemos guardar un modelo actualizado y usarlo en nuestra aplicación.
+
+El entity recognizer toma un documento y predice frases y sus etiquetas. Esto significa que los datos de entrenamiento tienen que incluir 
+textos, las entidades que contienen y las etiquetas de entidades.
+Las entidades no pueden superponerse, así que cada token solo puede ser parte de una entidad.
+Debido a que el entity recognizer predice entidades en contexto también necesita ser entrenado en las entidades y su contexto.
+La forma más fácil de hacer esto es mostrarle al modelo un texto y una lista de spans de entidades. Por ejemplo, "adidas ZX" es ropa, 
+comienza en el token 2 y termina en el token 4.
+También es muy importante que el modelo aprenda palabras que no son entidades.
+En este caso, la lista de anotaciones del span estará vacía.
+Nuestro objetivo es enseñarle al modelo a reconocer nuevas entidades en contextos similares, aunque no estuviesen en nuestros datos de 
+entrenamiento.
+
+La forma de generar un corpus de entrenamiento es:
+*
+import spacy
+
+nlp = spacy.blank("es")
+
+# Crea un Doc con spans de entidades
+doc1 = nlp("el iPhone X está por salir")
+doc1.ents = [Span(doc1, 1, 2, label="GADGET")]
+# Crea otro Doc sin spans de entidades
+doc2 = nlp("¡Necesito un nuevo teléfono! ¿Alguien tiene recomendaciones?")
+
+docs = [doc1, doc2]  # y así sucesivamente...
+*
+
+
+Se necesitan datos para entrenar y datos para desarrollar:
+*
+random.shuffle(docs)
+train_docs = docs[:len(docs) // 2]
+dev_docs = docs[len(docs) // 2:]
+*
+
+DocBin es un contenedor para guardar y serializar objetos Doc eficientemente. Se puede invocar el metodo to_disk para guardarlo en un archivo
+binario
+*
+# Crea y guarda una colección de docs para entrenamiento
+train_docbin = DocBin(docs=train_docs)
+train_docbin.to_disk("./train.spacy")
+# Crea y guarda una colección de docs para evaluación
+dev_docbin = DocBin(docs=dev_docs)
+dev_docbin.to_disk("./dev.spacy")
+*
+
+Si se tienen lista de datos de entrenamiento y desarrollo en formatos comunes, como CoNLL o IOB, el comando convert automaticamente convertira
+estos archivos en formato binario de spacy.
+$ python -m spacy convert ./train.gold.conll ./corpus
+
+Generar una configuración:
+$ python -m spacy init config ./config.cfg --lang es --pipeline ner
+    - init config: el comando a correr
+    - config.cfg: ruta de salida de la configuración generada
+    - --lang: la clase del idioma del pipeline, p. ej. es para español
+    - --pipeline: nombres, separados con comas, de los componentes a incluir
+
+Para ver lo que spacy acaba de generar, se puede utilizar el comando !cat ./config.cfg 
+
+
+Entrenar un pipeline:
+$ python -m spacy train ./config.cfg --output ./output --paths.train train.spacy --paths.dev dev.spacy
+    - train: el comando a correr
+    - config.cfg: ruta de archivo de configuración
+    - --output: ruta del directorio de salida para guardar el pipeline entrenado
+    - --paths.train: anular con ruta a los datos de entrenamiento
+    - --paths.dev: anular con ruta a los datos de evaluación
+
+Epoch --> es cada pasada sobre los datos
+Este entrenamiento devolvera una tabla con pasadas y valores. El más importante es el de la ultima columna, "score", que dice que tan preciso es 
+el modelo con respecto a las respuestas correctas en los datos de evaluación. El entrenamiento continua hasta q el modelo deja de mejorar. En
+ese momento, el entrenamiento deja de funcionar.
+
+Cargar un pipeline entrenado:
+*
+import spacy
+
+nlp = spacy.load("/ruta/de/arhcivo/model-best")
+doc = nlp("iPhone 11 vs iPhone 8: Cuál es la diferencia?")
+print(doc.ents)
+*
+
+Los pipelines pueden ser empaquetados como paquetes de python.  El comando spacy package toma una ruta de archivo de tu pipeline exportada y 
+un directorio de salida. Entonces genera un paquete de Python que contiene tu pipeline. El paquete de Python package es un 
+archivo .tar.gz file y puede ser instalado en tu entorno.
+
+$ python -m spacy package /path/to/output/model-best ./packages --name mi_pipeline --version 1.0.0
+$ cd ./packages/es_mi_pipeline-1.0.0
+$ pip install dist/es_mi_pipeline-1.0.0.tar.gz
+Carga y utiliza el pipeline después de instalarlo:
+
+nlp = spacy.load("es_mi_pipeline")
+
+PROBLEMAS DEL ENTRENAMIENTO DE MODELOS:
+
+1. El problema del "catastrophic forgetting" en un modelo hace referencia al hecho de comenzar a olvidar etiquetas correctamente predichas al 
+actualizarlo con nuevos datos, lo que significa un sobreajuste del modelo a los nuevos datos 
+
+Soluciones al "catastrophic forgetting":
+    - Al entrenar nuevas categorías, asegurarse de poner ejemplos de las ya aprendidas 
+
+2. Los modelos no pueden aprender todo. El esquema de etiquetas tiene que ser consistente y no tan especifico. Por ejemplo, es más facil que
+el modelo prediga ROPA y no ROPA_HOMBRE, ROPA_MUJER, ROPA_NIÑO
+
+Solucion: Al planificar el esquema de etiquetado, elegir categorías más bien generales que especificas
+

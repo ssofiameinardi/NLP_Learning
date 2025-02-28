@@ -1,0 +1,5 @@
+
+Tres tipos de extensiones:
+    - Extension de atributos --> Añaden un valor por defecto que puede ser sobreescrito
+    - Extension de propiedades --> Pueden definir una función getter y una setter opcional. Las extensiones para Span siempre deben utilizar un getter
+    - Extension de metodos --> Hace que la extension del atributo sea un metodo que pueda ser llamado
