@@ -1,0 +1,151 @@
+NLP is a machine learning field focused on understanding everythin related to human language, not only words itself but also context of those words
+Common NLP tasks:
+    - Classifying whole sentences--> detecting if an email is spam, determining if a sentence is grammatically 
+    correct or whether two sentences are logically related or not
+    - Classifying each word in a sentence--> Identify grammatical components or entities
+    - Generating text content --> Completing a prompt with auto-generated text, filling in the blanks in a text with masked words
+    - Extracting an answer from a text --> Based of information provided by the text
+    - Generating a new sentence from an input text--> Translating a text, summarizing a text
+
+There are three main steps involved when you pass some text to a pipeline:
+    - The text is preprocessed into a format the model can understand
+    - The preprocessed inputs are passed to the model
+    - The predictions of the model are post-processed, so you can make sense of them
+
+Some current pipelines:
+    - feature-extraction --> get the vector representation of the text
+    - fill-mask
+    - ner
+    - question-answering
+    - sentiment-analysis
+    - summarization
+    - text-generation
+    - translation
+    - zero-shot-classification
+
+Ejemplos:
+Zero-shot-classification: allows you to specify which labels to use for classification
+*
+from transformers import pipeline
+
+classifier = pipeline("zero-shot-classification")
+classifier(
+    "This is a course about the Transformers library",
+    candidate_labels=["education", "politics", "business"],
+)
+*
+It's called zero-shot because you dont need to fine-tune the model on your data to use it, it can directly return probability scores for any list 
+of labels
+
+
+Text-generation: you provide a prompt and the model will auto-complete it by generating the remaining text
+*
+generator = pipeline("text-generation")
+generator("In this course, we will teach you how to")
+*
+
+Using any model from the hub--> from Model Hub
+*
+generator = pipeline("text-generation", model="distilgpt2")
+generator(
+    "In this course, we will teach you how to",
+    max_length=30,
+    num_return_sequences=2,
+)
+*
+
+Fill-mask: Fills the blank spaces in a text. The top_k argument controls how many possibilities you want to be displayed
+*
+unmasker = pipeline("fill-mask")
+unmasker("This course will teach you all about <mask> models.", top_k=2)
+*
+
+Named Entity Recognition:
+*
+ner = pipeline("ner", grouped_entities=True)
+ner("My name is Sylvain and I work at Hugging Face in Brooklyn.")
+*
+
+Question Answering: 
+*
+question_answerer = pipeline("question-answering")
+question_answerer(
+    question="Where do I work?",
+    context="My name is Sylvain and I work at Hugging Face in Brooklyn",
+)
+*
+
+Summarization:
+*
+summarizer = pipeline("summarization")
+summarizer(
+    """
+    America has changed dramatically during recent years. Not only has the number of 
+    graduates in traditional engineering disciplines such as mechanical, civil, 
+    electrical, chemical, and aeronautical engineering declined, but in most of 
+    the premier American universities engineering curricula now concentrate on 
+    and encourage largely the study of engineering science. As a result, there 
+    are declining offerings in engineering subjects dealing with infrastructure, 
+    the environment, and related issues, and greater concentration on high 
+    technology subjects, largely supporting increasingly complex scientific 
+    developments. While the latter is important, it should not be at the expense 
+    of more traditional engineering.
+
+    Rapidly developing economies such as China and India, as well as other 
+    industrial countries in Europe and Asia, continue to encourage and advance 
+    the teaching of engineering. Both China and India, respectively, graduate 
+    six and eight times as many traditional engineers as does the United States. 
+    Other industrial countries at minimum maintain their output, while America 
+    suffers an increasingly serious decline in the number of engineering graduates 
+    and a lack of well-educated engineers.
+"""
+)
+*
+
+Translation:
+*
+translator = pipeline("translation", model="Helsinki-NLP/opus-mt-fr-en")
+translator("Ce cours est produit par Hugging Face.")
+*
+
+
+An architecture is a succession of mathematical functions to build a model and its weights are those functions parameters
+
+Transfer learning means transferring the knowledge of a pretrained model to a new model by initializing the second model with the first model's
+weights 
+
+
+Attention layers applies to any task associated with natural language: a word by itself has a meaning, but that meaning is deeply
+affected by the context, which can be any other word (or words) before or after the word being studied.
+
+
+Encoder:
+    - Bi-directional: context from the left and right
+    - Good at extracting meaningful information and obtaining an understanding of sequences
+    - Sequence clasification, question answering, masked language modeling
+
+Decoder:
+    - Uni-directional: context only from the words in the left, the ones in the right are hidden
+    - Great at causal tasks, generating sequences
+
+Encoder-decoder:
+    - The encoder takes care of understanding the sequence and the decorder takes care of generating a sequence according to de understanding
+    of the encoder. Good for sequence-to-sequence tasks (translation, summarization). Weights are not necessarily shared across the encoder and
+    decoder.
+
+****************************************************************************************************************************************************************
+
+Loading a transformer model already trained:
+
+from transformers import BertModel
+
+model = BertModel.from_pretrained("bert-base-cased"
+
+
+Saving a model: model.save_pretrained("directory_on_my_computer")
+
+****************************************************************************************************************************************************************
+
+Tokenizers serve to translate text into data that can be processed by the model. They convert text into numbers.
+
+Padding makes sure all the sentences have the same length by adding padding tokens to those with fewer values to complete them
