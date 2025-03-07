@@ -1,0 +1,54 @@
+Principales dominios del NLP:
+    - Traducción automática --> Google translate
+    - Análisis de sentimientos --> Para reconocer repercusión pública de un tema al analizar tweets, comentarios en blogs, etc
+    - Reconocimiento de palabras --> Consiste en convertir una señal vocal en un texto escrito (Buscador por voz de google)
+    - Generación de textos --> redacción automatica de mails, creación de resumenes de texto, generación de epígrafes, etc.
+    - Clasificación de textos --> segun tono para clasificar como positivo/negativo, segun temas, etc.
+    - Extracción de información
+    - Corrección automática
+    - Generación de diálogo
+
+Desafíos del NLP
+    - Comprensión y representación de la semántica
+    - Variabilidad del lenguaje
+    - Comprensión de enunciados implícitos
+
+En francés hay dos términos linguisticos: "signifiant" y "signifié". Signifiant es la palabra en sí (lo que yo leo) y signifié es el significado en
+ese contexto (lo que yo interpreto). Yo, por ser humana, puedo entender que, en la oración "Si camino por este camino, voy a llegar más rápido", el
+primer "camino" es el verbo caminar y el segundo es el sustantivo. El problema es que la maquina no puede hacerlo. Necesita de las palabras alrededor
+para poder identificar el correcto significado por contexto.
+
+
+Machine learning--> Es un proceso que le permite a una máquina aprender a partir de datos y mejorar la performance sin estar explicitamente programada
+Un algoritmo de machine learning puede encontrar modelos en los datos y utilizarlos para tomar decisiones o hacer predicciones
+
+Deep learning--> Es una subrama del machine learnign que se concentra en la utilizacion de redes neuronales, que son modelos matematicos conocidos
+por imitar el funcionamiento del cerebro humano. Están compuestas por capas de neuronas conectadas entre sí. Cada capa efectúa calculos sobre las
+entradas que recibe y produce salidas que son utilizadas como entradas para la capa siguiente. Mientras más capas se agregan, mayor complejidad en
+los modelos son capaces de soportar.
+
+Aprendizaje no supervisado--> Tiene como objetivo descubrir las relaciones entre los datos de entrada y reagruparlos en funcion de ellas.
+
+Pipeline de aprendizaje en NLP
+1. Recolección de datos
+2. Pre-tratamiento de datos
+3. Extracción de características
+4. Entrenamiento del modelo
+5. Evaluación del modelo
+
+Word embedding: Representar palabras en forma de vectores. El algoritmo que principalmente se usa es el Word2Vec. Este tiene dos arquitecturas:
+    - CBOW: El objetivo es predecir la palabra al tener el contexto
+    - skip-gram: El objetivo es predecir el contexto cuando tenemos las palabras como entradas
+
+Redes neuronales recurrentes(RNN): Tratan datos secuenciales. Su funcionamiento se basa en bucles recurrentes que permiten la propagación de información
+entre etapas en la secuencia. En cada etapa, las RNN tienen en cuenta la entrada actual y la salida de la etapa precedente, lo que permite conservar
+una memoria a corto plazo y capturar dependencias secuenciales
+Pueden ser utilizadas en diferentes configuraciones:
+    - de estado oculto simple (simple RNN)
+    - de larga memoria (LSTM - Lon Short Term Memory)
+    - de memoria de corto plazo (GRU)
+
+Pre-training--> Se le dan muchos textos con palabras aleatoriamente sacadas del texto para entrenar la predicción de palabras basadas en contexto
+Fine-tuning--> Entrenamiento para una tarea específica (QA, traduccion, etc)
+
+BERT se distingue por capturar el contexto bidireccional de las palabras
