@@ -1,0 +1,7 @@
+Proceso teórico de la traducción de texto
+1. Tokenización
+2. Vectorizamos los datos de entrada
+3. Procedemos a la traduccion automática de acuerdo a uno de los siguientes acercamientos:
+    a. Acercamiento estadistico, que utiliza corpus bilingues
+    b. Acercamiento neuronal, utilizando redes neuronales recurrentes (RNN) o transformers, que da mejores resultados que el acercamiento estadistico
+
